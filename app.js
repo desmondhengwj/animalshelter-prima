@@ -1,3 +1,4 @@
+require('dotenv').config({ silent: true })
 var express = require('express')
 var path = require('path')
 var debug = require('debug')
@@ -8,24 +9,36 @@ var expressLayouts = require('express-ejs-layouts')
 var app = express()
 var router = express.Router()
 var methodOverride = require('method-override')
+var passport = require('passport')
 
 // all you need for flash data
 var session = require('express-session')
 var flash = require('connect-flash')
 var cookieParser = require('cookie-parser')
+var MongoStore = require('connect-mongo')(session)
 
 var mongoose = require('mongoose')
-mongoose.connect('mongodb://localhost/animalshelter')
+mongoose.connect(process.env.MONGODB_URI)
 
 app.use(express.static('public'))
 
-app.use(cookieParser('supercalafragilistic'))
+app.use(cookieParser(process.env.SESSION_SECRET))
 app.use(session({
-  secret: 'supercalafragilistic',
+  secret: process.env.SESSION_SECRET,
   cookie: { maxAge: 60000 },
   resave: false,
-  saveUninitialized: true
+  saveUninitialized: true,
+  store: new MongoStore({
+    url: process.env.MONGODB_URI,
+    autoReconnect: true
+  })
 }))
+
+// initialize passport into your application
+app.use(passport.initialize())
+app.use(passport.session())
+require('./config/passportConfig')(passport)
+
 app.use(flash())
 
 app.use(methodOverride('_method'))
@@ -36,6 +49,14 @@ app.use(bodyParser.urlencoded({ extended: true }))
 app.use(expressLayouts)
 // app.engine('ejs', require('ejs').renderFile)
 app.set('view engine', 'ejs')
+
+app.get('/test', function (req, res) {
+  console.log(process.env); res.send('secret is ' + process.env.SESSION_SECRET)
+})
+
+// routes to login and signup
+const Auth = require('./routes/authRoutes')
+app.use('/', Auth)
 
 const Animal = require('./models/animal')
 app.get('/', function (req, res) {
@@ -124,7 +145,7 @@ if (app.get('env') === 'development') {
   })
 }
 
-const port = 4000
+const port = 4001
 app.listen(port, function () {
   console.log('Animal Shelter App is running on ' + port)
 })
