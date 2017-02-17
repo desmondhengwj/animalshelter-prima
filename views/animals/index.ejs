@@ -1,0 +1,76 @@
+<h1>Animal Homepage</h1>
+
+<% include ../partials/flash %>
+
+<img src="logo.png" alt="My Logo" width="100">
+<%# FIRST PART: THE FORM %>
+<form method="post" action="/animals">
+  <h2>Add An Animal</h2>
+  <div class="row">
+    <div class="form-group col-md-4">
+      <input type="text" class="form-control" name="animals[breed]" id="breed" placeholder="Breed">
+    </div>
+    <div class="form-group col-md-4">
+      <input type="text" class="form-control" name="animals[family]" id="family" placeholder="Family">
+    </div>
+    <div class="form-group col-md-4">
+      <input type="text" class="form-control" name="animals[name]" id="name" placeholder="Name">
+    </div>
+    <div class="form-group col-md-4">
+      <input type="text" class="form-control" name="animals[gender]" id="gender" placeholder="Gender (M/F)">
+    </div>
+    <div class="form-group col-md-4">
+      <input type="date" class="form-control" name="animals[dob]" id="dob">
+    </div>
+    <div class="form-group col-md-4">
+      <button type="submit" class="btn btn-success btn-block">Add an animal</button>
+    </div>
+  </div>
+</form>
+
+<%# SECOND PART: LISTING ANIMALS %>
+<div class="row">
+  <h2>All Animals</h2>
+  <% animals.forEach(function(animal) { %>
+    <div class="col-md-4">
+      <div class="panel panel-info">
+        <div class="panel-heading">
+          <h3 class="panel-title">
+            <%= animal.name %>
+            <small>(member since <%= animal.member_since%>)</small>
+          </h3>
+        </div>
+        <div class="panel-body">
+          This <%= animal.breed %> dog is from a <%= animal.family %> family
+          <br><br>
+          <% if( animal.status === 'abandoned') {%>
+            <a
+              class="btn btn-success"
+              href="/animals/<%=animal.id%>?status=adopted">
+              Adopt
+            </a>
+          <% } else { %>
+            <a
+              class="btn btn-danger"
+              href="/animals/<%=animal.id%>?status=abandoned">
+              Abandon
+            </a>
+          <% }%>
+          <a href="/animals/<%=animal.id%>" class="btn btn-primary">
+            Show profile
+          </a>
+          <br><br>
+          <form
+            method="POST"
+            action="/animals/<%= animal.id%>?_method=DELETE"
+          >
+            <button class="btn btn-danger" type="submit">
+              Delete animal
+            </button>
+          </form>
+        </div>
+      </div>
+      <pre><%= animal %></pre>
+    </div>
+  <% }) %>
+</div>
